@@ -1,0 +1,152 @@
+version: "3.7"
+services:  
+  queue:
+    container_name: queue
+    image: rabbitmq:management
+    # ports: 
+    #   - 15672:15672
+
+  create-producer:
+    container_name: create-producer
+    image: colares07/arquitetura-ep2-api-create
+    # build: ./producer/create
+    # volumes: 
+    #   - ./producer/create/src:/app 
+
+    ports: 
+      - 5000:5000
+    links: 
+      - queue
+    depends_on: 
+      - queue
+          
+  event-store-consumer:
+    container_name: event-store-consumer
+    image: colares07/arquitetura-ep2-event-store
+    # build: ./consumer/event-store
+    # volumes: 
+    #   - ./consumer/event-store/src:/app
+    links: 
+      - queue
+      - event-store-db:database
+    depends_on: 
+      - queue 
+      - event-store-db
+
+  event-store-db:
+    container_name: "event-store-db"
+    image: mongo
+    ports:
+      - 27017:27017
+    # volumes: 
+    #   - ./db-data:/data/db
+
+  event-store-api:
+    container_name: event-store-api
+    image: colares07/arquitetura-ep2-event-store-api
+    # build: ./consumer/event-store-api
+    # volumes: 
+    #   - ./consumer/event-store-api/src:/app 
+    links: 
+      - event-store-db:database
+    depends_on: 
+      - event-store-db 
+    ports: 
+      - 9000:5000  
+
+  delete-producer:
+    container_name: delete-producer
+    image: colares07/arquitetura-ep2-api-delete
+    # build: ./producer/delete
+    # volumes: 
+    #   - ./producer/delete/src:/app 
+    ports: 
+      - 6000:5000
+    links: 
+      - queue
+    depends_on: 
+      - queue
+
+  accountant-consumer:
+    container_name: accountant-consumer
+    image: colares07/arquitetura-ep2-accountant
+    # build: ./consumer/accountant
+    # volumes: 
+    #   - ./consumer/accountant/src:/app
+    links: 
+      - queue
+      - accountant-db:database
+    depends_on: 
+      - queue 
+      - accountant-db
+  
+  accountant-db:
+    container_name: accountant-db
+    image: redis
+    ports: 
+      - 6670:6379
+  
+  accountant-api:
+    container_name: accountant-api
+    image: colares07/arquitetura-ep2-accountant-api
+    # build: ./consumer/accountant-api
+    # volumes: 
+    #   - ./consumer/accountant-api/src:/app 
+    links: 
+      - accountant-db:database
+    depends_on: 
+      - accountant-db 
+    ports: 
+      - 9001:5000  
+
+  update-producer:
+    container_name: update-producer
+    image: colares07/arquitetura-ep2-api-update
+    # build: ./producer/update
+    # volumes: 
+    #   - ./producer/update/src:/app 
+    ports: 
+      - 7000:5000
+    links: 
+      - queue
+    depends_on: 
+      - queue      
+
+  fact-consumer:
+    container_name: fact-consumer
+    image: colares07/arquitetura-ep2-fact
+    # build: ./consumer/fact
+    # volumes: 
+    #   - ./consumer/fact/src:/app
+    links: 
+      - queue
+      - fact-db:database
+    depends_on: 
+      - queue 
+      - fact-db
+  
+  fact-db:
+    container_name: fact-db
+    image: redis
+    ports: 
+      - 6677:6379
+
+  fact-api:
+    container_name: fact-api
+    image: colares07/arquitetura-ep2-fact-api
+    # build: ./consumer/fact-api
+    # volumes: 
+    #   - ./consumer/fact-api/src:/app 
+    links: 
+      - fact-db:database
+    depends_on: 
+      - fact-db 
+    ports: 
+      - 9002:5000 
+
+
+
+
+   
+
+
